@@ -1,0 +1,497 @@
+<script>
+  function passForm(form) {
+    google.script.run
+      .withSuccessHandler(onSuccess)
+      .withFailureHandler(onFailure)
+      .PassForm(form);
+  }
+
+  function onSuccess() {
+    google.script.host.close();
+  }
+
+  function onFailure(e) {
+    alert(e);
+  }
+
+  $(function() {
+    doItNow();
+  });
+
+  function doItNow() {
+    var resultData = JSON.parse(data);
+    var SUBSCRIPTION_IS_ONLINE = /онлайн/i.test(resultData.subscription[3]);
+    var countLessons = resultData.subscription[6];
+
+    var allRows = $(".all-rows");
+    var tempTime;
+    var tempDate;
+    var tempTeacher;
+    var tempClass;
+    var tempStatus;
+    var statusBdr;
+    var disabled;
+
+    for (var i = 1; i <= countLessons; i++) {
+      statusBdr = "whiteCls";
+      disabled = "";
+      tempDate =
+        resultData.lessInfo[i - 1][0] == "" ||
+        resultData.lessInfo[i - 1][0] == null
+          ? ""
+          : new Date(resultData.lessInfo[i - 1][0]).getDate() +
+            "." +
+            (new Date(resultData.lessInfo[i - 1][0]).getMonth() +
+              1 +
+              "." +
+              new Date(resultData.lessInfo[i - 1][0]).getFullYear()); //дата занятия с таблицы личного кабинета
+      tempTime =
+        resultData.lessInfo[i - 1][1] == "" ||
+        resultData.lessInfo[i - 1][1] == null
+          ? ""
+          : resultData.lessInfo[i - 1][1]; //время занятия с таблицы личного кабинета
+      tempClass =
+        resultData.lessInfo[i - 1][2] == "" ||
+        resultData.lessInfo[i - 1][2] == null
+          ? ""
+          : resultData.lessInfo[i - 1][2]; //класс занятия с таблицы личного кабинета
+      tempTeacher =
+        resultData.lessInfo[i - 1][3] == "" ||
+        resultData.lessInfo[i - 1][3] == null
+          ? resultData.currentTeacher
+          : resultData.lessInfo[i - 1][3]; ////педагог занятия с таблицы личного кабинета
+      if (resultData.lessInfo[i - 1][4] == "✅") {
+        tempStatus = "занятие прошло ✅";
+      } else if (resultData.lessInfo[i - 1][4] == "⛔") {
+        tempStatus = "клиент не пришел ⛔";
+      } else if (
+        resultData.lessInfo[i - 1][4] == "-" ||
+        resultData.lessInfo[i - 1][4] == ""
+      ) {
+        tempStatus = " -";
+      }
+      //если статус "занятие прошло", добавляю класс, который закрашевает в зеленый цвет
+      if (tempStatus == "занятие прошло ✅") {
+        statusBdr = "greenCls";
+      }
+      //если статус "клиент не пришел", добавляю класс, который закрашевает в красный цвет
+      else if (tempStatus == "клиент не пришел ⛔") {
+        statusBdr = "redCls";
+      }
+      //disabled  кнопок, если до занятия менше чем 20 часов(тоесть нельзя помянять занятие)
+      if (tempDate != "") {
+        var curHours = resultData.lessInfo[i - 1][1]; //время занятия
+        //  console.log(resultData.lessInfo[i - 1][0]);
+        var lessTime = new Date(resultData.lessInfo[i - 1][0]); //день занятия со временем
+        console.log(lessTime);
+        lessTime.setHours(curHours);
+        console.log(lessTime);
+        if ((lessTime.getTime() - new Date().getTime()) / 3600000 < 20) {
+          disabled = "disabled";
+          console.log("disable");
+        }
+      }
+
+      //добавляю блок с занятием
+      allRows.append(
+        "<div  blocknumber=" +
+          i +
+          " class='row no-gutters newrow " +
+          statusBdr +
+          "'> <h3>Занятие " +
+          i +
+          "</h3> <hr/> <div class='row no-gutters'> <div class='col-sm-5'> <div class='col-sm-5'> <p>Дата: </p><p>Класс: </p><p>Время: </p> </div> <div class='col-sm-5 selects'><select " +
+          disabled +
+          " class='date'> <option disabled selected>" +
+          tempDate +
+          "</option></select><select disabled class='class'> <option disabled selected>" +
+          tempClass +
+          "</option></select> <select disabled class='time'><option disabled selected>" +
+          tempTime +
+          "</option></select></div></div><div class='col-sm-5 col-sm-offset-1'><div class='col-sm-5'><p> Педагог: </p><p> Статус: </p></div><div class='col-sm-5 selects'><select class='teacher'><option disabled selected>" +
+          tempTeacher +
+          "</option></select><select class='status'><option disabled selected>" +
+          tempStatus +
+          "</option></select> </div></div></div> </div>"
+      );
+    }
+
+    //добавляем номер зявки
+    $(".clientNumber").text(resultData.subscription[0]);
+    //добавляем имя клиента
+    $(".clientName").text(resultData.subscription[1]);
+    //добавляем кол-во занятий
+    $(".countLessons").text(resultData.subscription[6]);
+    //добавляем цену занятия
+    $(".price").text(resultData.subscription[5]);
+
+    //добавляю всех педагогов у выпадающие списки
+    var teachers = resultData.teachers;
+    for (var i = 0; i < teachers.length; i++) {
+      $(".teacher").append(
+        '<option value="' + teachers[i] + '">' + teachers[i] + "</option>"
+      );
+    }
+
+    //добавляю все даты у выпадающие списки( 3 месяца)
+    var dates = [""];
+    var dateNow = new Date();
+    var dateNowPlusMonth = new Date(
+      dateNow.getFullYear(),
+      dateNow.getMonth() + 4,
+      dateNow.getDate()
+    );
+    var monthNow = dateNow.getMonth();
+    while (dateNow.getMonth() != dateNowPlusMonth.getMonth()) {
+      dates.push(
+        dateNow.getDate() +
+          "." +
+          (dateNow.getMonth() + 1) +
+          "." +
+          dateNow.getFullYear()
+      );
+      dateNow.setDate(dateNow.getDate() + 1);
+    }
+    for (var i = 0; i < dates.length; i++) {
+      $(".date").append(
+        '<option value="' + dates[i] + '">' + dates[i] + "</option>"
+      );
+    }
+
+    //добавляю все статусы у выпадающие списки
+    var status = ["занятие прошло ✅", "клиент не пришел ⛔", " -"];
+    for (var i = 0; i < status.length; i++) {
+      $(".status").append(
+        '<option value="' + status[i] + '">' + status[i] + "</option>"
+      );
+    }
+
+    //обрабатываю изменение селектов, что бы подтягнуть новые значение в выпадающие списки
+    $(".newrow").on("change", function(event) {
+      var attrNumber = +$(event.currentTarget).attr("blocknumber");
+      var currentDate = $(event.currentTarget)
+        .find(".date :selected")
+        .val();
+      var currentTime = $(event.currentTarget)
+        .find(".time :selected")
+        .val();
+      var currentClass = $(event.currentTarget)
+        .find(".class :selected")
+        .val();
+      var currentStatus = $(event.currentTarget)
+        .find(".status :selected")
+        .val();
+      console.log(currentClass);
+      console.log(currentTime);
+
+      //убераю disabled кнопок времени и класса, если еще можна поменять занятие
+      if (
+        $($(event.currentTarget).find(".date")).attr("disabled") != "disabled"
+      ) {
+        $($(event.currentTarget).find(".time")).removeAttr("disabled");
+        $($(event.currentTarget).find(".class")[0]).removeAttr("disabled");
+      }
+
+      //меняю цвет фона в зависимости от статуса занятия
+      if (currentStatus == "занятие прошло ✅") {
+        $(event.currentTarget).context.classList.add("greenCls");
+        $(event.currentTarget).context.classList.remove("redCls");
+        $(event.currentTarget).context.classList.remove("whiteCls");
+      } else if (currentStatus == "клиент не пришел ⛔") {
+        $(event.currentTarget).context.classList.add("redCls");
+        $(event.currentTarget).context.classList.remove("whiteCls");
+        $(event.currentTarget).context.classList.remove("greenCls");
+      } else if (currentStatus == " -") {
+        $(event.currentTarget).context.classList.add("whiteCls");
+        $(event.currentTarget).context.classList.remove("redCls");
+        $(event.currentTarget).context.classList.remove("greenCls");
+      }
+
+      //название листа в таблице в зависимости от месяца
+      var sheetName = "";
+      var monthes = [
+        "Январь",
+        "Февраль",
+        "Март",
+        "Апрель",
+        "Май",
+        "Июнь",
+        "Июль",
+        "Август",
+        "Сентябрь",
+        "Октябрь",
+        "Ноябрь",
+        "Декабрь"
+      ];
+      //ищу индекс месяца
+      for (var m = 0; m < monthes.length; m++) {
+        if (m == currentDate.split(".")[1] - 1) {
+          sheetName += monthes[m];
+        }
+      }
+      //добавляю до названия год
+      sheetName += " " + currentDate.split(".")[2];
+
+      //свободные места в этой дате
+      currentDate = currentDate.split(".")[0];
+      if (sheetName != "undefined") {
+        var freeClassesInSchedule;
+        try {
+          //беру данные с нужного листа
+          freeClassesInSchedule = resultData.dataTable[sheetName][currentDate];
+        } catch (e) {
+          //если нет, пусто
+          freeClassesInSchedule = {};
+        }
+
+        //свободные классы
+        var freeClasses = [];
+        //свободные часы в этом классе
+        var freeHours;
+        //если это старая запись, показываю только то, что было выбрано ранее
+        if (resultData.dataTable[sheetName] == undefined) {
+          freeClasses.push(currentClass);
+          freeHours.push(currentTime);
+        }
+        //прохожу по местам
+        //по классам
+        for (var class_ in freeClassesInSchedule) {
+          var CLASS_IS_ONLINE = /онлайн/i.test(class_);
+
+          if (SUBSCRIPTION_IS_ONLINE && !CLASS_IS_ONLINE) {
+            continue;
+          }
+
+          //добавляю классы
+          freeClasses.push(class_);
+          //если еще часы не добавлены, добавляю часы первого класса(для выпадающего списка)
+          if (freeHours == undefined) {
+            freeHours = [];
+            for (
+              var hours = 0;
+              hours < freeClassesInSchedule[freeClasses[0]].length;
+              hours++
+            ) {
+              //если тип аренда утро, беру только дневные часы
+              if (resultData.subscription[3].toLowerCase() == "аренда утро") {
+                if (
+                  +freeClassesInSchedule[class_][hours] >= 9 &&
+                  +freeClassesInSchedule[class_][hours] <= 14
+                ) {
+                  freeHours.push(freeClassesInSchedule[class_][hours]);
+                }
+              }
+              //если вечер, то вечерние
+              else if (
+                resultData.subscription[3].toLowerCase() == "аренда вечер"
+              ) {
+                if (
+                  +freeClassesInSchedule[class_][hours] >= 15 &&
+                  +freeClassesInSchedule[class_][hours] <= 22
+                ) {
+                  freeHours.push(freeClassesInSchedule[class_][hours]);
+                }
+              } else {
+                //если нет, закидываю все
+                freeHours.push(freeClassesInSchedule[class_][hours]);
+              }
+            }
+          }
+          //если это выбраный класс
+          if (class_ == currentClass) {
+            var previousTime =
+              resultData.lessInfo[attrNumber - 1][1] == ""
+                ? ""
+                : resultData.lessInfo[attrNumber - 1][1]; //время которое было выбрано ранее
+            var previousDay = new Date(
+              resultData.lessInfo[attrNumber - 1][0]
+            ).getDate(); //день который был выбран ранее
+            var previousClass =
+              resultData.lessInfo[attrNumber - 1][2] == ""
+                ? ""
+                : resultData.lessInfo[attrNumber - 1][2]; //класс который был выбран ранее
+            freeHours = [];
+            //добавляю его свободные часы
+            for (
+              var hours = 0;
+              hours < freeClassesInSchedule[class_].length;
+              hours++
+            ) {
+              if (resultData.subscription[3].toLowerCase() == "аренда утро") {
+                if (
+                  +freeClassesInSchedule[class_][hours] >= 9 &&
+                  +freeClassesInSchedule[class_][hours] <= 14
+                ) {
+                  freeHours.push(freeClassesInSchedule[class_][hours]);
+                }
+              } else if (
+                resultData.subscription[3].toLowerCase() == "аренда вечер"
+              ) {
+                if (
+                  +freeClassesInSchedule[class_][hours] >= 15 &&
+                  +freeClassesInSchedule[class_][hours] <= 22
+                ) {
+                  freeHours.push(freeClassesInSchedule[class_][hours]);
+                }
+              } else {
+                freeHours.push(freeClassesInSchedule[class_][hours]);
+              }
+            }
+
+            //добавляю в своб часы, час, на который было выбрано это занятие, если такой час еще не добавлен
+            if (
+              previousTime != "" &&
+              currentDate == previousDay &&
+              currentClass == previousClass
+            ) {
+              var flagPreviousHour = false;
+              //ищу предыдущий час в уже добавленых
+              for (var t = 0; t < freeHours.length; t++) {
+                //если нашли
+                if (freeHours[t] == previousTime) {
+                  //флаг тру, что такой час был
+                  flagPreviousHour = true;
+                  break;
+                }
+              }
+              //если не было такого часа, добавляю
+              if (!flagPreviousHour) {
+                freeHours.push(previousTime);
+              }
+            }
+          }
+        }
+
+        //удаляю старый список с классами
+        $(event.currentTarget)
+          .find(".class")
+          .find("option")
+          .remove();
+        //добавляю новый список с классами
+        for (var i = 0; i < freeClasses.length; i++) {
+          if (freeClasses[i] == currentClass) {
+            $(event.currentTarget)
+              .find(".class")
+              .append(
+                '<option selected value="' +
+                  freeClasses[i] +
+                  '">' +
+                  freeClasses[i] +
+                  "</option>"
+              );
+          } else {
+            $(event.currentTarget)
+              .find(".class")
+              .append(
+                '<option value="' +
+                  freeClasses[i] +
+                  '">' +
+                  freeClasses[i] +
+                  "</option>"
+              );
+          }
+        }
+        //удаляю старый список с временем
+        $(event.currentTarget)
+          .find(".time")
+          .find("option")
+          .remove();
+        try {
+          //!!
+          freeHours.sort(function(a, b) {
+            return a - b;
+          });
+
+          //добавляю новый список с временем
+          for (var i = 0; i < freeHours.length; i++) {
+            //  freeHours[i] += ":00";
+            if (freeHours[i] == currentTime) {
+              $(event.currentTarget)
+                .find(".time")
+                .append(
+                  '<option selected value="' +
+                    freeHours[i] +
+                    '">' +
+                    freeHours[i] +
+                    "</option>"
+                );
+            } else {
+              $(event.currentTarget)
+                .find(".time")
+                .append(
+                  '<option value="' +
+                    freeHours[i] +
+                    '">' +
+                    freeHours[i] +
+                    "</option>"
+                );
+            }
+          }
+        } catch (e) {}
+      }
+    });
+
+    //отправляю данные
+    $(".send-pf").on("click", function(e) {
+      e.preventDefault();
+      var dataSend = [];
+      $(".newrow").each(function(iChild, elemChild) {
+        objSend = {};
+        objSend.date = $(elemChild)
+          .find(".date :selected")
+          .val();
+        objSend.time = $(elemChild)
+          .find(".time :selected")
+          .val();
+        objSend.class = $(elemChild)
+          .find(".class :selected")
+          .val();
+        objSend.teacher = $(elemChild)
+          .find(".teacher :selected")
+          .val();
+        //добавляю цвет фона и шрифта этого педагога
+        for (var i = 0; i < resultData.teachers.length; i++) {
+          if (objSend.teacher == resultData.teachers[i]) {
+            objSend.bgr = resultData.bgrs[i];
+            objSend.color = resultData.colors[i];
+            break;
+          }
+        }
+        objSend.status = $(elemChild)
+          .find(".status :selected")
+          .val()
+          .toString();
+        objSend.status = objSend.status[objSend.status.length - 1];
+        objSend.client = resultData.subscription[1];
+        dataSend.push(objSend);
+      });
+      $(".send-pf").hide();
+      $(".loader").show();
+      $(".backGround").show();
+      passForm(JSON.stringify([dataSend, resultData.dataTable]));
+    });
+  }
+
+  $(function() {
+    var ink, d, x, y;
+
+    $(document).on("click", ".ripplelink", function(e) {
+      if ($(this).find(".ink").length === 0) {
+        $(this).prepend("<span class='ink'></span>");
+      }
+
+      ink = $(this).find(".ink");
+      ink.removeClass("animate");
+
+      if (!ink.height() && !ink.width()) {
+        d = Math.max($(this).outerWidth(), $(this).outerHeight());
+        ink.css({ height: d, width: d });
+      }
+
+      x = e.pageX - $(this).offset().left - ink.width() / 2;
+      y = e.pageY - $(this).offset().top - ink.height() / 2;
+
+      ink.css({ top: y + "px", left: x + "px" }).addClass("animate");
+    });
+  });
+</script>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        p {
+            margin-left: 0px;
+            margin-right: 0px;
+            margin-bottom: 12px;
+
+        }
+
+        .row {
+            margin-left: 0px;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 16px;
+            overflow-x: hidden;
+        }
+
+        h3 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            margin-left: -30px;
+            text-align: center;
+        }
+
+        h4 {
+            margin-left: -15px;
+        }
+
+        select:disabled {
+            background: #E6E6FA;
+        }
+
+        .greenCls {
+            background: #90EE90;
+        }
+
+        .redCls {
+            background: #FFA07A;
+        }
+
+        .whiteCls {
+            background: #FFFFFF;
+        }
+
+        .add-pf {
+            display: block;
+            margin: 10px auto;
+            width: 25px;
+            line-height: 25px;
+            font-size: 33px;
+            text-align: center;
+            background: #337ab7;
+            color: #fff;
+            text-decoration: none !important;
+            transition: all 0.5s ease;
+            height: 25px;
+            overflow: hidden;
+        }
+
+        .add-pf:after {
+            content: 'Добавить';
+            width: 0px;
+            overflow: hidden;
+            width: 0px;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .add-pf:hover {
+            width: 130px;
+        }
+
+        .add-pf:hover:after {
+            width: auto;
+            margin-left: 10px;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #fff;
+        }
+
+        .header-line {
+            margin-bottom: 20px;
+            margin-left: -50px;
+        }
+
+        textarea {
+            resize: none;
+            width: 100%;
+            height: 86px;
+        }
+
+        .select-container {
+            padding: 15px 20px;
+            background: #FAFAFA;
+            font-size: 16px;
+            width: 100%;
+            position: relative;
+            box-sizing: border-box;
+            margin: 0px;
+            border-radius: 5px;
+            overflow: hidden;
+
+        }
+
+        .select-container .select2-container {
+            width: auto !important;
+            font-size: 14px;
+            margin-left: 0;
+        }
+
+        .select-inner-container {
+            margin-bottom: -15px;
+            margin-left: -20px;
+            margin-right: -20px;
+            padding: 5px 30px;
+            background: #FBE9F0;
+            margin-top: 10px;
+            overflow: hidden;
+            clear: both;
+            color: #757575;
+            border-radius: 5px;
+        }
+
+        .select-inner-container span {
+            margin-left: 5px;
+        }
+
+        .select-container>span {
+            color: #616161;
+            float: left;
+            margin-left: 5px;
+            line-height: 27px;
+        }
+
+        .select-container input {
+            height: 50px;
+            font-size: 12px;
+            padding: 0 5px;
+            width: 70px;
+            float: left;
+            text-align: center;
+
+        }
+
+        .select-container>input {
+            margin-left: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .select2-container .select2-selection--single .select2-selection__rendered {
+            padding-left: 10px;
+            width: 424px;
+        }
+
+        .loading {
+            padding: 15px 20px;
+            font-size: 16px;
+            width: 300px;
+            position: relative;
+            box-sizing: border-box;
+            margin: 10px auto;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .loader {
+            border: 16px solid #f3f3f3;
+            /* Light grey */
+            border-top: 16px solid #3498db;
+            /* Blue */
+            border-radius: 50%;
+            width: 400px;
+            height: 400px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 150px;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            display: none;
+        }
+
+        .backGround {
+            position: absolute;
+            z-index: 888;
+            top: 0;
+            left: 0;
+            width: 6000px;
+            height: 6000px;
+            background-color: black;
+            opacity: .5;
+            display: none;
+            overflow: hidden;
+        }
+
+        .send-pf {
+            display: block;
+            height: 45px;
+            border: none;
+            width: 500px;
+            border-radius: 5px;
+            text-align: center;
+            color: #fff;
+            background: #4CAF50;
+            text-transform: uppercase;
+            font-size: 19px;
+            transition: all 0.5s ease;
+            margin: 30px auto 0;
+            cursor: pointer;
+        }
+
+        .ripplelink {
+            text-align: center;
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            -webkit-transition: all 0.2s ease;
+            -moz-transition: all 0.2s ease;
+            -o-transition: all 0.2s ease;
+            transition: all 0.2s ease;
+            z-index: 0;
+        }
+
+        .modal-dialog-title {
+            margin: 0;
+        }
+
+        .ripplelink:hover {
+            z-index: 1000;
+            box-shadow: rgba(0, 0, 0, 0.3) 0 16px 16px 0;
+            -webkit-box-shadow: rgba(0, 0, 0, 0.3) 0 16px 16px 0;
+            -moz-box-shadow: rgba(0, 0, 0, 0.3) 0 16px 16px 0;
+        }
+
+        .ink {
+            display: block;
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 100%;
+            -webkit-transform: scale(0);
+            -moz-transform: scale(0);
+            -o-transform: scale(0);
+            transform: scale(0);
+        }
+
+        select {
+            width: 200px;
+            height: 25px
+        }
+
+        .header-info {
+            font-weight: bold;
+        }
+
+        .animate {
+            -webkit-animation: ripple 0.65s linear;
+            -moz-animation: ripple 0.65s linear;
+            -ms-animation: ripple 0.65s linear;
+            -o-animation: ripple 0.65s linear;
+            animation: ripple 0.65s linear;
+        }
+
+        @-webkit-keyframes ripple {
+            100% {
+                opacity: 0;
+                -webkit-transform: scale(2.5);
+            }
+        }
+
+        @-moz-keyframes ripple {
+            100% {
+                opacity: 0;
+                -moz-transform: scale(2.5);
+            }
+        }
+
+        @-o-keyframes ripple {
+            100% {
+                opacity: 0;
+                -o-transform: scale(2.5);
+            }
+        }
+
+        @keyframes ripple {
+            100% {
+                opacity: 0;
+                transform: scale(2.5);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .dateToday,
+            {
+            font-weight: bold;
+        }
+
+        .selects select,
+        .inputs input,
+        .inpits select {
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            text-align: center;
+        }
+
+        .right-selects {
+            padding-left: 30px;
+
+        }
+    </style>
+    <div class="backGround"></div>
+    <div class="loader"></div>
+    <hr/>
+    <div class="col-sm-12 header-line">
+        <div class="col-sm-3">
+            <span class="header-info"> № Абонемент: </span>
+            <span class="clientNumber"></span>
+        </div>
+        <div class="col-sm-3">
+            <span class="header-info"> Клиент: </span>
+            <span class="clientName"></span>
+        </div>
+        <div class="col-sm-3">
+            <span class="header-info"> Кол-во занятий: </span>
+            <span class="countLessons"></span>
+        </div>
+        <div class="col-sm-3">
+            <span class="header-info"> Цена: </span>
+            <span class="price"></span>
+        </div>
+    </div>
+    <br>
+    <hr/>
+    <div class="all-rows">
+    </div>
+
+
+    <button class="send-pf ripplelink">Сохранить</button>
+
+
+
+    <script>
+        function passForm(form) {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).PassForm(form);
+        }
+        function onSuccess() {
+            console.log("Success");
+            google.script.host.close();
+
+        }
+        function onFailure(e) {
+            alert(e);
+        }
+        $(function () {
+            doItNow();
+        });
+
+        function doItNow() {
+            var data = <?= res ?>;
+            var resultData = JSON.parse(data);
+            var countLessons = resultData.subscription[6];
+
+            var allRows = $('.all-rows');
+            var tempTime;
+            var tempDate;
+            var tempTeacher;
+            var tempClass;
+            var tempStatus;
+            var statusBdr;
+            var disabled;
+            
+            for (var i = 1; i <= countLessons; i++) {
+                statusBdr = "whiteCls";
+                disabled = "";
+                tempDate = (resultData.lessInfo[i - 1][0] == '' || resultData.lessInfo[i - 1][0] == null) ? "" : new Date(resultData.lessInfo[i - 1][0]).getDate() + "." + (new Date(resultData.lessInfo[i - 1][0]).getMonth() + 1 + "." + (new Date(resultData.lessInfo[i - 1][0]).getFullYear())); //дата занятия с таблицы личного кабинета
+                tempTime = (resultData.lessInfo[i - 1][1] == '' || resultData.lessInfo[i - 1][1] == null) ? "" : resultData.lessInfo[i - 1][1]; //время занятия с таблицы личного кабинета
+                tempClass = (resultData.lessInfo[i - 1][2] == '' || resultData.lessInfo[i - 1][2] == null) ? "" : resultData.lessInfo[i - 1][2]; //класс занятия с таблицы личного кабинета
+                tempTeacher = (resultData.lessInfo[i - 1][3] == '' || resultData.lessInfo[i - 1][3] == null) ? resultData.currentTeacher : resultData.lessInfo[i - 1][3]; ////педагог занятия с таблицы личного кабинета
+                if (resultData.lessInfo[i - 1][4] == '✅') {
+                    tempStatus = 'занятие прошло ✅';
+                }
+                else if (resultData.lessInfo[i - 1][4] == '⛔') {
+                    tempStatus = 'клиент не пришел ⛔';
+                }
+                else if (resultData.lessInfo[i - 1][4] == '-' || resultData.lessInfo[i - 1][4] == '') {
+                    tempStatus = ' -';
+                }
+                //если статус "занятие прошло", добавляю класс, который закрашевает в зеленый цвет
+                if (tempStatus == 'занятие прошло ✅') {
+                    statusBdr = "greenCls";
+                }
+                //если статус "клиент не пришел", добавляю класс, который закрашевает в красный цвет
+                else if (tempStatus == 'клиент не пришел ⛔') {
+                    statusBdr = "redCls";
+                }
+                //disabled  кнопок, если до занятия менше чем 20 часов(тоесть нельзя помянять занятие)
+                if (tempDate != '') {
+                    var curHours = resultData.lessInfo[i - 1][1]; //время занятия
+                   //  console.log(resultData.lessInfo[i - 1][0]);
+                    var lessTime = (new Date(resultData.lessInfo[i - 1][0]));  //день занятия со временем
+                    console.log(lessTime);
+                    lessTime.setHours(curHours);
+                    console.log(lessTime);
+                    if ((lessTime.getTime() - new Date().getTime()) / 3600000 < 20) {
+                        disabled = 'disabled';
+                        console.log('disable');
+                    };
+                }
+                //добавляю блок с занятием
+                allRows.append("<div  blocknumber=" + i + " class='row no-gutters newrow " + statusBdr + "'> <h3>Занятие " + i + "</h3> <hr/> <div class='row no-gutters'> <div class='col-sm-5'> <div class='col-sm-5'> <p>Дата: </p><p>Класс: </p><p>Время: </p> </div> <div class='col-sm-5 selects'><select " + disabled + " class='date'> <option disabled selected>" + tempDate + "</option></select><select disabled class='class'> <option disabled selected>" + tempClass + "</option></select> <select disabled class='time'><option disabled selected>" + tempTime + "</option></select></div></div><div class='col-sm-5 col-sm-offset-1'><div class='col-sm-5'><p> Педагог: </p><p> Статус: </p></div><div class='col-sm-5 selects'><select class='teacher'><option disabled selected>" + tempTeacher + "</option></select><select class='status'><option disabled selected>" + tempStatus + "</option></select> </div></div></div> </div>");
+            }
+
+            //добавляем номер зявки    
+            $('.clientNumber').text(resultData.subscription[0]);
+            //добавляем имя клиента  
+            $('.clientName').text(resultData.subscription[1]);
+            //добавляем кол-во занятий
+            $('.countLessons').text(resultData.subscription[6]);
+            //добавляем цену занятия
+            $('.price').text(resultData.subscription[5]);
+
+            //добавляю всех педагогов у выпадающие списки
+            var teachers = resultData.teachers;
+            for (var i = 0; i < teachers.length; i++) {
+                $('.teacher').append('<option value="' + teachers[i] + '">' + teachers[i] + '</option>');
+            }
+
+            //добавляю все даты у выпадающие списки( 3 месяца)
+            var dates = [''];
+            var dateNow = new Date();
+            var dateNowPlusMonth = new Date(dateNow.getFullYear(), dateNow.getMonth() + 4, dateNow.getDate());
+            var monthNow = dateNow.getMonth();
+            while (dateNow.getMonth() != dateNowPlusMonth.getMonth()) {
+                dates.push(dateNow.getDate() + "." + (dateNow.getMonth() + 1) + "." + dateNow.getFullYear());
+                dateNow.setDate(dateNow.getDate() + 1);
+            }
+            for (var i = 0; i < dates.length; i++) {
+                $('.date').append('<option value="' + dates[i] + '">' + dates[i] + '</option>');
+            }
+
+            //добавляю все статусы у выпадающие списки
+            var status = ['занятие прошло ✅', 'клиент не пришел ⛔', ' -'];
+            for (var i = 0; i < status.length; i++) {
+                $('.status').append('<option value="' + status[i] + '">' + status[i] + '</option>');
+            }
+
+            //обрабатываю изменение селектов, что бы подтягнуть новые значение в выпадающие списки
+            $('.newrow').on('change', function (event) {
+                var attrNumber = +$(event.currentTarget).attr('blocknumber');
+                var currentDate = $(event.currentTarget).find('.date :selected').val();
+                var currentTime = $(event.currentTarget).find('.time :selected').val();
+                var currentClass = $(event.currentTarget).find('.class :selected').val();
+                var currentStatus = $(event.currentTarget).find('.status :selected').val();
+                console.log(currentClass);
+                console.log(currentTime);
+
+                //убераю disabled кнопок времени и класса, если еще можна поменять занятие
+                if ($($(event.currentTarget).find('.date')).attr('disabled') != 'disabled') {
+                    $($(event.currentTarget).find('.time')).removeAttr('disabled');
+                    $($(event.currentTarget).find('.class')[0]).removeAttr('disabled');
+                }
+
+                //меняю цвет фона в зависимости от статуса занятия
+                if (currentStatus == 'занятие прошло ✅') {
+                    $(event.currentTarget).context.classList.add("greenCls");
+                    $(event.currentTarget).context.classList.remove("redCls");
+                    $(event.currentTarget).context.classList.remove("whiteCls");
+                }
+                else if (currentStatus == 'клиент не пришел ⛔') {
+                    $(event.currentTarget).context.classList.add("redCls");
+                    $(event.currentTarget).context.classList.remove("whiteCls");
+                    $(event.currentTarget).context.classList.remove("greenCls");
+                }
+                else if (currentStatus == ' -') {
+                    $(event.currentTarget).context.classList.add("whiteCls");
+                    $(event.currentTarget).context.classList.remove("redCls");
+                    $(event.currentTarget).context.classList.remove("greenCls");
+                }
+
+                //название листа в таблице в зависимости от месяца
+                var sheetName = "";
+                var monthes = [
+                    'Январь',
+                    'Февраль',
+                    'Март',
+                    'Апрель',
+                    'Май',
+                    'Июнь',
+                    'Июль',
+                    'Август',
+                    'Сентябрь',
+                    'Октябрь',
+                    'Ноябрь',
+                    'Декабрь'
+                ];
+                //ищу индекс месяца
+                for (var m = 0; m < monthes.length; m++) {
+                    if (m == currentDate.split('.')[1] - 1) {
+                        sheetName += monthes[m];
+                    }
+                }
+                //добавляю до названия год
+                sheetName += " " + currentDate.split('.')[2];
+
+                //свободные места в этой дате
+                currentDate = currentDate.split('.')[0];
+                if (sheetName != 'undefined') {
+                    var freeClassesInSchedule;
+                    try {
+                        //беру данные с нужного листа
+                        freeClassesInSchedule = resultData.dataTable[sheetName][currentDate];
+                    }
+                    catch (e) {
+                        //если нет, пусто
+                        freeClassesInSchedule = {};
+                    }
+                    
+                    //свободные классы
+                    var freeClasses = [];
+                    //свободные часы в этом классе
+                    var freeHours;
+                    //если это старая запись, показываю только то, что было выбрано ранее
+                    if(resultData.dataTable[sheetName] == undefined){
+                        freeClasses.push(currentClass);
+                        freeHours.push(currentTime)
+                    }
+                    //прохожу по местам
+                    //по классам
+                    for (var class_ in freeClassesInSchedule) {
+                        //добавляю классы
+                        freeClasses.push(class_);
+                        //если еще часы не добавлены, добавляю часы первого класса(для выпадающего списка)
+                        if (freeHours == undefined) {
+                            freeHours = [];
+                            for (var hours = 0; hours < freeClassesInSchedule[freeClasses[0]].length; hours++) {
+                                //если тип аренда утро, беру только дневные часы
+                                   if(resultData.subscription[3].toLowerCase() == "аренда утро"){
+                                 if(+freeClassesInSchedule[class_][hours] >= 9 && +freeClassesInSchedule[class_][hours] <= 14){
+                                     freeHours.push((freeClassesInSchedule[class_][hours]));
+                                 }                         
+                                }
+                                //если вечер, то вечерние
+                                else if(resultData.subscription[3].toLowerCase() == "аренда вечер"){
+                                     if(+freeClassesInSchedule[class_][hours] >= 15 && +freeClassesInSchedule[class_][hours] <= 22){
+                                     freeHours.push((freeClassesInSchedule[class_][hours]));
+                                 }  
+                                }
+                                else{
+                                 //если нет, закидываю все
+                                      freeHours.push((freeClassesInSchedule[class_][hours]));
+                                }
+                            }
+                        }
+                        //если это выбраный класс
+                        if (class_ == currentClass) {
+                            var previousTime = (resultData.lessInfo[attrNumber - 1][1] == '') ? "" : (resultData.lessInfo[attrNumber - 1][1]); //время которое было выбрано ранее
+                            var previousDay = (new Date(resultData.lessInfo[attrNumber - 1][0])).getDate(); //день который был выбран ранее
+                            var previousClass = (resultData.lessInfo[attrNumber - 1][2] == '') ? "" : resultData.lessInfo[attrNumber - 1][2]; //класс который был выбран ранее
+                            freeHours = [];
+                            //добавляю его свободные часы
+                            for (var hours = 0; hours < freeClassesInSchedule[class_].length; hours++) {
+                            if(resultData.subscription[3].toLowerCase() == "аренда утро"){
+                            if(+freeClassesInSchedule[class_][hours] >= 9 && +freeClassesInSchedule[class_][hours] <= 14){
+                            freeHours.push((freeClassesInSchedule[class_][hours]));
+                            }                         
+                            }
+                                else if(resultData.subscription[3].toLowerCase() == "аренда вечер"){
+                                     if(+freeClassesInSchedule[class_][hours] >= 15 && +freeClassesInSchedule[class_][hours] <= 22){
+                                     freeHours.push((freeClassesInSchedule[class_][hours]));
+                                 }  
+                                }
+                                else{
+                                      freeHours.push((freeClassesInSchedule[class_][hours]));
+                                }
+                            }
+                            
+                            //добавляю в своб часы, час, на который было выбрано это занятие, если такой час еще не добавлен
+                             if (previousTime != '' && currentDate == previousDay && currentClass == previousClass) {
+                             var flagPreviousHour = false; 
+                                //ищу предыдущий час в уже добавленых
+                                for(var t = 0; t < freeHours.length; t++){
+                                  //если нашли
+                                  if(freeHours[t] == previousTime){
+                                  //флаг тру, что такой час был
+                                   flagPreviousHour = true;
+                                   break;
+                                  }
+                                }
+                                //если не было такого часа, добавляю
+                                if(!flagPreviousHour){
+                                   freeHours.push(previousTime);
+                              }                              
+                            }
+                        }
+                    }
+                    
+                    //удаляю старый список с классами
+                    $(event.currentTarget).find('.class').find('option').remove();
+                    //добавляю новый список с классами
+                    for (var i = 0; i < freeClasses.length; i++) {
+                        if (freeClasses[i] == currentClass) {
+                            $(event.currentTarget).find('.class').append('<option selected value="' + freeClasses[i] + '">' + freeClasses[i] + '</option>');
+                        }
+                        else {
+                            $(event.currentTarget).find('.class').append('<option value="' + freeClasses[i] + '">' + freeClasses[i] + '</option>');
+                        }
+                    }
+                    //удаляю старый список с временем
+                    $(event.currentTarget).find('.time').find('option').remove();
+                    try {//!!
+                        freeHours.sort(function (a, b) {
+                            return a - b;
+                        });
+
+                        //добавляю новый список с временем
+                        for (var i = 0; i < freeHours.length; i++) {
+                          //  freeHours[i] += ":00";
+                            if (freeHours[i] == currentTime) {
+                                $(event.currentTarget).find('.time').append('<option selected value="' + freeHours[i] + '">' + freeHours[i] + '</option>');
+                            }
+                            else {
+                                $(event.currentTarget).find('.time').append('<option value="' + freeHours[i] + '">' + freeHours[i] + '</option>');
+                            }
+                        }
+                    }
+                    catch (e) { }
+                }
+            });
+
+
+            //отправляю данные
+            $('.send-pf').on('click', function (e) {
+                e.preventDefault();
+                var dataSend = [];
+                $('.newrow').each(function (iChild, elemChild) {
+                    objSend = {};
+                    objSend.date = $(elemChild).find('.date :selected').val();
+                    objSend.time = $(elemChild).find('.time :selected').val();
+                    objSend.class = $(elemChild).find('.class :selected').val();
+                    objSend.teacher = $(elemChild).find('.teacher :selected').val();
+                    //добавляю цвет фона и шрифта этого педагога
+                    for (var i = 0; i < resultData.teachers.length; i++) {
+                        if (objSend.teacher == resultData.teachers[i]) {
+                            objSend.bgr = resultData.bgrs[i];
+                            objSend.color = resultData.colors[i];
+                            break;
+                        }
+                    }
+                    objSend.status = $(elemChild).find('.status :selected').val().toString();
+                    objSend.status = objSend.status[objSend.status.length - 1];
+                    objSend.client = resultData.subscription[1];
+                    dataSend.push(objSend);
+                });
+                $('.send-pf').hide();
+                $('.loader').show();
+                $('.backGround').show();
+                passForm(JSON.stringify([dataSend,resultData.dataTable]));
+            });
+        }
+
+        $(function () {
+            var ink, d, x, y;
+            $(document).on('click', '.ripplelink', function (e) {
+                if ($(this).find(".ink").length === 0) {
+                    $(this).prepend("<span class='ink'></span>");
+                }
+
+                ink = $(this).find(".ink");
+                ink.removeClass("animate");
+
+                if (!ink.height() && !ink.width()) {
+                    d = Math.max($(this).outerWidth(), $(this).outerHeight());
+                    ink.css({ height: d, width: d });
+                }
+
+                x = e.pageX - $(this).offset().left - ink.width() / 2;
+                y = e.pageY - $(this).offset().top - ink.height() / 2;
+
+                ink.css({ top: y + 'px', left: x + 'px' }).addClass("animate");
+            });
+        });
+
+    </script>
+</body>
+
+</html>

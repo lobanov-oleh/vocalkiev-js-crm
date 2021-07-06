@@ -1,0 +1,424 @@
+//бронирование абонемента
+function reservingSubscription(){
+  var res = getDataForModal();
+  if(res){
+    var htmlOutputTMP = HtmlService
+    .createTemplateFromFile('reservingSub');
+    htmlOutputTMP.res = res;
+    var htmlOutputText = htmlOutputTMP.evaluate().getContent();
+    var htmlOutput = HtmlService.createHtmlOutput(htmlOutputText)
+    .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+    .setWidth(960)
+    .setHeight(620);
+    SpreadsheetApp.getUi().showModalDialog(htmlOutput, ' ');
+  }
+}
+
+//получение данных для модального окна
+function getDataForModal(){
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet(),
+      sheet = spreadSheet.getActiveSheet(),
+      sCatalog = spreadSheet.getSheetByName('Справочник'),
+      dataCatalog = sCatalog.getDataRange().getValues(),
+      dataSubscription = sheet.getDataRange().getValues(),
+      bgrsCatalog = sCatalog.getDataRange().getBackgrounds(),
+      colorsCatalog = sCatalog.getDataRange().getFontColors(),
+      cell = sheet.getActiveCell(),
+      row = cell.getRow();
+  try{
+    //формирую данные для модального окна
+    var res = {};
+    res.classes= []; 
+    res.teachers = [];
+    res.bgrs = [];
+    res.colors = [];
+    res.currentTeacher = dataCatalog[1][3]; //текущий педагог со справочника
+    //номер абонемента, клиент, дисц, тип, комент, цена, кол, израсх.
+    res.subscription = [dataSubscription[row-1][0], dataSubscription[row-1][1], dataSubscription[row-1][2], dataSubscription[row-1][3], dataSubscription[row-1][4], dataSubscription[row-1][5], dataSubscription[row-1][6]];
+    //добавляю все классы, всех педаг., все стиле
+    for(var i = 1; i < dataCatalog.length; i++){
+      if(dataCatalog[i][0] != ''){
+        res.classes.push(dataCatalog[i][0]);
+      }
+      if(dataCatalog[i][1] != ''){
+        res.teachers.push(dataCatalog[i][2]);
+        res.bgrs.push(bgrsCatalog[i][2]);
+        res.colors.push(colorsCatalog[i][2]);
+      }
+    }
+    
+    //добавляю выбранные ранее занятия в этом абонементе
+    var lessonsInfo = [];
+    var countLessons = dataSubscription[row-1][6]; //кол-во занятий
+    var startCellsInfo = 8; //начало колонок с иформ. о занятиях
+    var countCellsInfo = 5; //кол-во колонок с иформ. о занятиях
+    
+    //иду по этому абонементу
+    for(var j = startCellsInfo; j < startCellsInfo+countCellsInfo*countLessons; j++){
+      //если это новое занятие, добавляю новый массив
+      if((j-startCellsInfo) % countCellsInfo == 0){
+        lessonsInfo.push([]);
+      }
+      //в него добавляю текущее поле
+      lessonsInfo[lessonsInfo.length-1].push(dataSubscription[row-1][j]);
+    }
+    res.lessInfo = lessonsInfo;
+    res.dataTable = getDataFromSchedule();
+    return JSON.stringify(res);
+  }
+  catch(e){
+    //выкидываю ошибку, если не выбран номер абонемента
+    var htmlOutput = HtmlService
+    .createHtmlOutput('<p>Выберите номер абонемента!</p>')
+    .setWidth(250)
+    .setHeight(70);
+    SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Ошибка!');    
+    return false;
+    // throw new Error('Выберите номер абонемента!');
+  }
+}
+
+//бронирую время
+function PassForm(allData) {
+  var newData = JSON.parse(allData)[0];
+  var dataFromTable = JSON.parse(allData)[1]; //даные взятые с таблицы
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet(),
+      sheet = spreadSheet.getActiveSheet(),
+      dataSubscription = sheet.getDataRange().getValues(),
+      cell = sheet.getActiveCell(),
+      row = cell.getRow();
+  var arrayResult = [];
+  var passedLessons = 0;
+  //заносим данные в личный кабинет
+  for(var i = 0; i < newData.length; i++){
+    arrayResult.push((newData[i].date == undefined) ? '' : newData[i].date);
+    arrayResult.push((newData[i].time == undefined) ? '' : newData[i].time);
+    arrayResult.push((newData[i].class == undefined) ? '' : newData[i].class);
+    arrayResult.push((newData[i].teacher == undefined) ? '' : newData[i].teacher);
+    arrayResult.push((newData[i].status == undefined) ? '' : newData[i].status);
+    if(newData[i].status != '-'){
+      passedLessons++;
+    }
+  }
+  
+  //cтарые данные для удаления
+  try{
+    var lessonsForDelete = [];
+    var lessDel = sheet.getRange(row,9,1,arrayResult.length).getValues();
+    for(var i = 0; i < lessDel[0].length;i+=5){
+      var obj = {}
+      obj.date = lessDel[0][0+i];
+      obj.time = lessDel[0][1+i];
+      obj.class = lessDel[0][2+i];
+      obj.teacher = lessDel[0][3+i];
+      obj.client = dataSubscription[row-1][1];
+      lessonsForDelete.push(obj);
+    }
+    //удаляю с расписания старые даные
+    deleteLessonFromSchedule(lessonsForDelete);
+  }
+  catch(e){
+    Logger.log('Ошибка удаление старых занятий');
+    Logger.log(e);
+  }
+  sheet.getRange(row,9,1,arrayResult.length).setValues([arrayResult]);
+  sheet.getRange(row,8).setValue(passedLessons);
+  
+  try{
+    setLessonToSchedule(newData,dataFromTable);
+  }
+  catch(e){
+    Logger.log('Ошибка записи новых занятий');
+    Logger.log(e);
+  }
+} 
+
+//добавляю занятия в расписание
+function setLessonToSchedule(data,dataFromTable){
+  var ssSchedule = SpreadsheetApp.openById('1y5fVM2V1ZXuHAD4GXOdUM42wru1x0BHViryaJUies0Q'), //расписание
+      sSchedule,
+//      ssScheduleFree = SpreadsheetApp.openById('1OKKeMDOK9j77RLa9no4QEFTtnV6g9E4x8PSZoVKEmb4'), //расписание
+//      sScheduleFree,
+      dataSchedule;
+  for(var less = 0; less < data.length; less++){
+    try{
+      var checkedDate = (data[less].date.toString().split("."))[0];
+      var checkedMonth = (data[less].date.toString().split("."))[1];
+      var sheetName = getSheetNameThisMonth(data[less]);
+      sSchedule = ssSchedule.getSheetByName(sheetName);
+//      sScheduleFree = ssScheduleFree.getSheetByName(sheetName);
+      dataSchedule = sSchedule.getDataRange().getValues();
+      for(var i = 0; i < dataSchedule.length; i++){
+        //ищу поле с датой
+        if(dataSchedule[i][0] == "дата"){
+          for(var j = 1; j < dataSchedule[i].length; j++){
+            //ищу выбраную дату
+            if(+dataSchedule[i][j] == +checkedDate){
+              //ищу выбранный клас в этой дате
+              var indexColumn;
+              for(var k = j; k < dataSchedule[i].length; k++){ //!!
+                if(dataSchedule[1][k] == data[less].class){
+                  indexColumn=k+1;
+                  break;
+                }
+              }
+              //ищу в этой колонке выбраное время? 24-макс. кол. часов
+              for(var p=i+2; p < dataSchedule.length; p++){
+                if(dataSchedule[p][0].replace(/\s/g, '') == data[less].time.replace(/\s/g, '')){
+                  //проверяю точно ли пусто в таблице и не его ли там урок
+                  //если нет
+                  if(sSchedule.getRange(p+1,indexColumn).getValue() != "" ){
+                    if(sSchedule.getRange(p+1,indexColumn).getValue() != data[less].teacher || sSchedule.getRange(p+1,indexColumn+1).getValue() != data[less].client){
+                      updateIfErrorSet(data[less].date, data[less].time, data[less].class, dataFromTable, sSchedule.getRange(p+1,indexColumn).getValue(), sSchedule.getRange(p+1,indexColumn+1).getValue(), data[less].teacher , data[less].client);
+                    }
+                    break;
+                  }
+                  else{
+                    //если да,вставляю значения в расп и в откр расписание
+                    sSchedule.getRange(p+1,indexColumn).setValue(data[less].teacher).setBackground(data[less].bgr).setFontColor(data[less].color);
+                    sSchedule.getRange(p+1,indexColumn+1).setValue(data[less].client).setBackground(data[less].bgr).setFontColor(data[less].color);
+//                    sScheduleFree.getRange(p+1,indexColumn).setBackground(data[less].bgr).setFontColor(data[less].color);
+//                    sScheduleFree.getRange(p+1,indexColumn+1).setBackground(data[less].bgr).setFontColor(data[less].color);
+                    break;
+                  }
+                }           
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    catch(e){
+      Logger.log("Ошибка записи данных")
+      Logger.log(e);
+    }
+  }
+}
+
+//обновляю личный кабинет, если хотели добавить занятие, а там уже занято
+function updateIfErrorSet(date, time, _class, dataFromTable , teacherFromTable, clientFromTable, tempTeacher, tempClient){
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet(),
+      sheet = spreadSheet.getActiveSheet(),
+      dataSubscription = sheet.getDataRange().getValues(),
+      cell = sheet.getActiveCell(),
+      row = cell.getRow();
+  
+  //затираю то занятие, где возникла ошибка
+  var day = date.split('.')[0], 
+      month = date.split('.')[1],
+      year = date.split('.')[2];
+  
+  //прохожу по абонементу
+  for(var i = 8; i < dataSubscription[row-1].length; i+=5){
+    try{
+      //если это та дата, то время и год
+      if(dataSubscription[row-1][i].getFullYear() == year && dataSubscription[row-1][i].getDate() == day && dataSubscription[row-1][i].getMonth()+1 == month && dataSubscription[row-1][i+1] == time && dataSubscription[row-1][i+2] == _class){
+        //удаляю
+        sheet.getRange(row,i+1,1,5).setValue("");
+        break;
+      }
+    }
+    catch(e){
+    }
+  }
+  //вывожу окно об ошибке
+  var htmlOutput = HtmlService
+  .createHtmlOutput('<p>'+date+'<br>'+time+'<br>'+_class+'<br><br>Педагог: '+ teacherFromTable + '<br>Клиент: '+ clientFromTable+'</p>')
+  .setWidth(350)
+  .setHeight(150);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Это место уже занято:');  
+  
+  //название листа в таблице в зависимости от месяца
+  var sheetName = "";
+  var monthes = [
+    'Январь',
+    'Февраль',
+    'Март',
+    'Апрель',
+    'Май',
+    'Июнь',
+    'Июль',
+    'Август',
+    'Сентябрь',
+    'Октябрь',
+    'Ноябрь',
+    'Декабрь'
+  ];
+  //ищу индекс месяца
+  for (var m = 0; m < monthes.length; m++) {
+    if (m == month-1) {
+      sheetName += monthes[m];
+    }
+  }
+  //добавляю до названия год
+  sheetName += " " + year; 
+  MailApp.sendEmail({
+    to: "melnykkatia@gmail.com",
+    subject: "Место занято",
+    htmlBody: "<p>Таблица: " + spreadSheet.getName() +",</p>" + "<p>Дата: </p>"+date+ "<p>Время: </p>"+time+ "<p>Класс: </p>"+_class+ "<p>Св. часы, которые были: </p>"+dataFromTable[sheetName][day][_class] + "<p>Педагог с таблицы: </p>"+ teacherFromTable + "<p>Клиент с таблицы: </p>"+ clientFromTable +  "<p>Текущий педагог: </p>"+ tempTeacher + "<p>Текущий клиент: </p>"+ tempClient
+  });
+}
+
+//обновляю личный кабинет, если хотели добавить занятие, а там уже занято
+function updateIfErrorDel(date, time, _class , teacherFromTable, clientFromTable, tempTeacher, tempClient){
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log('удаление');
+  MailApp.sendEmail({
+    to: "melnykkatia@gmail.com",
+    subject: "Удаление урока",
+    htmlBody: "<p>Таблица: " + spreadSheet.getName() +",</p>" + "<p>Дата: </p>"+date+ "<p>Время: </p>"+time+ "<p>Класс:"+_class+" </p>" + "<p>Педагог с таблицы: </p>"+ teacherFromTable + "<p>Клиент с таблицы: </p>"+ clientFromTable +  "<p>Текущий педагог: </p>"+ tempTeacher + "<p>Текущий клиент: </p>"+ tempClient
+  });
+}
+
+//удаление занятий с расписания
+function deleteLessonFromSchedule(data){
+  var ssSchedule = SpreadsheetApp.openById('1y5fVM2V1ZXuHAD4GXOdUM42wru1x0BHViryaJUies0Q'), //расписание
+      sSchedule,
+//      ssScheduleFree = SpreadsheetApp.openById('1OKKeMDOK9j77RLa9no4QEFTtnV6g9E4x8PSZoVKEmb4'), //расписание
+//      sScheduleFree,
+      dataSchedule;
+  
+  for(var less = 0; less < data.length; less++){
+    try{
+    var checkedDate = data[less].date.getDate();
+    var checkedMonth = (data[less].date.toString().split("."))[1];
+    var sheetName = getSheetNameThisMonth(data[less]);
+    sSchedule = ssSchedule.getSheetByName(sheetName);
+//    sScheduleFree = ssScheduleFree.getSheetByName(sheetName);
+    dataSchedule = sSchedule.getDataRange().getValues();
+    for(var i = 0; i < dataSchedule.length; i++){
+      //ищу поле с датой
+      if(dataSchedule[i][0] == "дата"){
+        for(var j = 1; j < dataSchedule[i].length; j++){
+          //ищу выбраную дату
+          if(+dataSchedule[i][j] == +checkedDate){
+            //ищу выбранный клас в этой дате
+            var indexColumn;
+            for(var k = j; k < dataSchedule[i].length; k++){
+              if(dataSchedule[1][k] == data[less].class){
+                indexColumn=k+1;
+                break;
+              }
+            }
+            //ищу в этой колонке выбраное время
+            for(var p = i + 2; p < dataSchedule.length; p++){
+              if(dataSchedule[p][0].replace(/\s/g, '')  == data[less].time.replace(/\s/g, '')){ //!!!
+                //можна удалить только если тут был твой урок
+                if(sSchedule.getRange(p+1,indexColumn).getValue().toLowerCase() == data[less].teacher.toLowerCase() && sSchedule.getRange(p+1,indexColumn+1).getValue().toLowerCase() == data[less].client.toLowerCase()){
+                  sSchedule.getRange(p+1,indexColumn).clearContent().clearFormat();
+                  sSchedule.getRange(p+1,indexColumn+1).clearContent().clearFormat();
+//                  sScheduleFree.getRange(p+1,indexColumn).clearFormat();
+//                  sScheduleFree.getRange(p+1,indexColumn+1).clearFormat();
+                }
+                else{
+                  //если хотел удалить не свой урок и там не пусто
+                  if(sSchedule.getRange(p+1,indexColumn).getValue() != "" && sSchedule.getRange(p+1,indexColumn+1).getValue() != ""){
+                    //сообщение об ошибке на почту
+                      updateIfErrorDel(data[less].date, data[less].time, data[less].class, sSchedule.getRange(p+1,indexColumn).getValue(), sSchedule.getRange(p+1,indexColumn+1).getValue(), data[less].teacher , data[less].client);               
+                  }          
+                }
+                break;
+              }           
+            }
+            break;
+          }
+        }
+      }
+    }
+    }
+    catch(e){
+    Logger.log(e);
+    Logger.log("Ошибка удаления старых даних");
+    }
+  }
+}
+
+//формирование данных
+function getDataFromSchedule(){
+  var ssSchedule = SpreadsheetApp.openById('1y5fVM2V1ZXuHAD4GXOdUM42wru1x0BHViryaJUies0Q'), //расписание
+      dataSchedule,
+      bgrdSchedule,
+      sheets = ssSchedule.getSheets();
+  var allSheets = {};
+  var monthes =[
+    'Январь',
+    'Февраль',
+    'Март',
+    'Апрель',
+    'Май',
+    'Июнь',
+    'Июль',
+    'Август',
+    'Сентябрь',
+    'Октябрь',
+    'Ноябрь',
+    'Декабрь'
+  ];
+  var today = new Date();
+  var sheetNames = []; //назвы таблиц, за следующие 4 месяца
+  sheetNames.push(getSheetNameThisMonth(today));
+  sheetNames.push(getSheetNameThisMonth(new Date(today.getFullYear(), today.getMonth()+1, 1)));
+  sheetNames.push(getSheetNameThisMonth(new Date(today.getFullYear(), today.getMonth()+2, 1)));
+  sheetNames.push(getSheetNameThisMonth(new Date(today.getFullYear(), today.getMonth()+3, 1)));
+  //иду по всем листам таблицы
+  for(var s = 0; s < sheets.length; s++){
+    //иду по листам  четырех месяцов
+    for(var lastSheets = 0 ; lastSheets < sheetNames.length; lastSheets++){
+      //если одинаковые названия
+      if(sheetNames[lastSheets] == sheets[s].getSheetName()){
+        //считываю все даные и бгр
+        dataSchedule = sheets[s].getDataRange().getValues();
+        bgrdSchedule = sheets[s].getDataRange().getBackgrounds(); 
+        //добавляю этот лист в конечный обьект
+        allSheets[sheets[s].getSheetName()] = {};
+        //прохожу по даным этого листа
+        for(var i = 0; i < dataSchedule.length; i++){
+          //исчу рядок с полем дата
+          //если нахожу 
+          if(dataSchedule[i][0] == "дата"){
+            //прохожу по этом ряду
+            for(var j = 1; j < dataSchedule[i].length; j++){              
+              if(dataSchedule[i][j] != ""){
+                //добавляю все даты, тоесть не пустые поля
+                allSheets[sheets[s].getSheetName()][dataSchedule[i][j]] = {};
+                //добавляю места
+                var startClassIndexInDay = j; //индекс начала даты в рядке
+                //прохожу по первой строке с классами
+                for(var startClassIndexInDay = j; startClassIndexInDay < dataSchedule[1].length; startClassIndexInDay++ ){
+                  // добаляю классы в дату, пока не найду синий разделитель(разделитель между днями)
+                  if(bgrdSchedule[1][startClassIndexInDay] == '#9fc5e8'){
+                    break;
+                  }
+                  else if(dataSchedule[1][startClassIndexInDay] != ''){
+                    //если не пусто добаляю класс
+                    allSheets[sheets[s].getSheetName()][dataSchedule[i][j]][dataSchedule[1][startClassIndexInDay]] = [];
+                    //прохожу по всем часом
+                    for(var k = 0; k < 24; k++){
+                      //если нахожу cиний разделитель или конец таблицы, часы закончились, выхожу из цикла;
+                      if(bgrdSchedule[i+2+k][0] == '#9fc5e8'){
+                        break;
+                      }
+                      
+                      //если  пусто, добавляю свободный час
+                      if(dataSchedule[i+2+k][startClassIndexInDay] == ""){
+                        //беру время без пробелов
+                        var timeWithOutSpace = dataSchedule[i+2+k][0].replace(/\s/g, ''); // ?????
+                        allSheets[sheets[s].getSheetName()][dataSchedule[i][j]][dataSchedule[1][startClassIndexInDay]].push(timeWithOutSpace); 
+                      }
+                      
+                      if(i+2+k == dataSchedule.length - 1){
+                        break;
+                      }
+                    }
+                  }
+                }        
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return allSheets;
+}

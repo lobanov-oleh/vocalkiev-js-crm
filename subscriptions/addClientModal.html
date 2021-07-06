@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <base target="_top">
+      <meta charset="utf-8">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" 
+         integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh"
+         crossorigin="anonymous"></script>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+      <!-- Optional theme -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css" />
+      <!-- Optional theme -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/css/bootstrap-datetimepicker.min.css" />
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>   
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.37/js/bootstrap-datetimepicker.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+      <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet"/>
+   </head>
+   <body>
+      <style>
+         * {
+         margin: 0;
+         padding: 0;
+         }
+         body {
+         font-family: 'Open Sans', sans-serif;
+         font-size: 16px;
+         overflow-x: hidden;
+         overflow-y: hidden;
+         }
+         .add-pf {
+         display: block;
+         margin: 10px auto;
+         width: 25px;
+         line-height: 25px;
+         font-size: 33px;
+         text-align: center;
+         background: #337ab7;
+         color: #fff;
+         text-decoration: none !important;
+         transition: all 0.5s ease;
+         height: 25px;
+         overflow: hidden;
+         }
+         .add-pf:after {
+         content: 'Добавить';
+         width: 0px;
+         overflow: hidden;
+         width: 0px;
+         display: inline-block;
+         font-size: 16px;
+         }
+         .add-pf:hover {
+         width: 130px;
+         }
+         .add-pf:hover:after {
+         width: auto;
+         margin-left: 10px;
+         }
+         a {
+         text-decoration: none;
+         }
+         a:hover {
+         color: #fff;
+         }
+         textarea {
+         resize: none;
+         width: 100%;
+         height: 86px;
+         } 
+         .select-container {
+         padding: 15px 20px;
+         background: #FAFAFA;
+         font-size: 16px;
+         width: 100%;
+         position: relative;
+         box-sizing: border-box;
+         margin: 0px;
+         border-radius: 5px;
+         overflow: hidden;
+         }
+         .select-container .select2-container {
+         width: auto !important;
+         font-size: 14px;
+         margin-left: 0;
+         }
+         .select-inner-container {
+         margin-bottom: -15px;
+         margin-left: -20px;
+         margin-right: -20px;
+         padding: 5px 30px;
+         background: #FBE9F0;
+         margin-top: 10px;
+         overflow: hidden;
+         clear: both;
+         color: #757575;
+         border-radius: 5px;
+         }
+         .select-inner-container span {
+         margin-left: 5px;
+         }
+         .select-container > span {
+         color: #616161;
+         float: left;
+         margin-left: 5px;
+         line-height: 27px;
+         }
+         .select-container input {
+         height: 50px;
+         font-size: 12px;
+         padding: 0 5px;
+         width: 70px;
+         float: left;
+         text-align: center;
+         }
+         .select-container > input {
+         margin-left: 10px;
+         border: 1px solid #ccc;
+         }
+         .select2-container .select2-selection--single .select2-selection__rendered {
+         padding-left: 10px;
+         width: 424px;
+         }
+         .loading {
+         padding: 15px 20px;
+         font-size: 16px;
+         width: 300px;
+         position: relative;
+         box-sizing: border-box;
+         margin: 10px auto;
+         border-radius: 5px;
+         overflow: hidden;
+         }
+         .loader {
+         border: 16px solid #f3f3f3; /* Light grey */
+         border-top: 16px solid #3498db; /* Blue */
+         border-radius: 50%;
+         width: 400px;
+         height: 400px;
+         animation: spin 2s linear infinite;
+         position: absolute;
+         margin-left: auto;
+         margin-right: auto;
+         margin-top: 150px;
+         left: 0;
+         right: 0;
+         z-index: 999;
+         display: none;
+         }
+         .backGround {
+         position: absolute;
+         z-index: 888;
+         top: 0;
+         left: 0;
+         width: 6000px;
+         height: 6000px;
+         background-color: black;
+         opacity: .5;
+         display: none;
+         overflow: hidden;
+         }
+         .send-pf {
+         display: block;
+         height: 45px;
+         border: none;
+         width: 500px;
+         border-radius: 5px;
+         text-align: center;
+         color: #fff;
+         background: #4CAF50;
+         text-transform: uppercase;
+         font-size: 19px;
+         transition: all 0.5s ease;
+         margin: 30px auto 0;
+         cursor: pointer;
+         z-index: 20;
+         top: 20px;
+         }
+         .ripplelink {
+         text-align: center;
+         color: #fff;
+         text-decoration: none;
+         position: relative;
+         overflow: hidden;
+         -webkit-transition: all 0.2s ease;
+         -moz-transition: all 0.2s ease;
+         -o-transition: all 0.2s ease;
+         transition: all 0.2s ease;
+         z-index: 0;
+         }
+         .ripplelink:hover {
+         z-index: 1000;
+         box-shadow: rgba(0, 0, 0, 0.3) 0 16px 16px 0;
+         -webkit-box-shadow: rgba(0, 0, 0, 0.3) 0 16px 16px 0;
+         -moz-box-shadow: rgba(0, 0, 0, 0.3) 0 16px 16px 0;
+         }
+         .ink {
+         display: block;
+         position: absolute;
+         background: rgba(255, 255, 255, 0.3);
+         border-radius: 100%;
+         -webkit-transform: scale(0);
+         -moz-transform: scale(0);
+         -o-transform: scale(0);
+         transform: scale(0);
+         }
+         .animate {
+         -webkit-animation: ripple 0.65s linear;
+         -moz-animation: ripple 0.65s linear;
+         -ms-animation: ripple 0.65s linear;
+         -o-animation: ripple 0.65s linear;
+         animation: ripple 0.65s linear;
+         }
+         @-webkit-keyframes ripple {
+         100% {
+         opacity: 0;
+         -webkit-transform: scale(2.5);
+         }
+         }
+         @-moz-keyframes ripple {
+         100% {
+         opacity: 0;
+         -moz-transform: scale(2.5);
+         }
+         }
+         @-o-keyframes ripple {
+         100% {
+         opacity: 0;
+         -o-transform: scale(2.5);
+         }
+         }
+         @keyframes ripple {
+         100% {
+         opacity: 0;
+         transform: scale(2.5);
+         }
+         }
+         @keyframes spin {
+         0% { transform: rotate(0deg); }
+         100% { transform: rotate(360deg); }
+         }
+         .dateToday, .clientNumber{
+         font-weight: bold;
+         }
+         /*        .selects{
+         padding-top: 30px;
+         }*/
+
+
+         textarea{
+         text-align:center;
+         }
+         /*        .right-selects{
+         padding-left: 30px;
+         padding-top: 30px;
+         }*/
+		.betw{
+			height: 10px;
+		}
+
+         .comment{
+         margin-top:25px;
+         width:100%;
+         }
+      </style>
+      <div class="backGround"></div>
+      <div class="loader"></div>
+      <div class="row no-gutters">
+         <p class="col-sm-12">№ Абонемента: <span class="clientNumber"></span> </p></div>
+
+         <div class="row">
+
+         <div class="col-sm-6  no-gutters calendar">
+            <!-- <div class="col-sm-4"><p>Дата продажи: </p></div>  -->
+            <!-- <div class=''> -->
+            <span class="input-group-addon" id="sizing-addon2"  style="display:inline-block;width: 35%;height: 34px; ">Дата продажи:</span>
+            <div class="form-group" style="display:inline-block;width: 65%;float: right; border-radius: 0 5px 5px 0;" >
+               <div class='input-group date' id='datetimepicker1'>
+                  <input id="date" type='text' class="form-control" />
+                  <span class="input-group-addon">
+                  <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+               </div>
+               <!-- </div> -->
+            </div>
+         </div>
+         <div class="col-sm-6 selects">
+            <div class="input-group input-group-sm">
+               <span class="input-group-addon" id="sizing-addon2">Дисциплина</span>
+               <select class="lessons form-control">
+                  <option disabled selected>Выбор дисциплины</option>
+               </select>
+            </div>
+         </div>
+		</div>
+
+
+		<div class="row">
+		<div class="col-sm-6">
+         <div class="input-group input-group-sm">
+            <span class="input-group-addon" id="sizing-addon2">Клиент</span>
+            <input type="text" class="form-control client" placeholder="Фамилия Имя" aria-label="Username" aria-describedby="sizing-addon2">
+         </div>
+         </div>
+       <!-- <div class="selects"> -->
+       	<div class="col-sm-6">
+         <div class=" input-group input-group-sm">
+            <span class="input-group-addon" id="sizing-addon2">Педагог</span>
+            <select class="teacher form-control">
+               <option disabled selected>Выбор педагога</option>
+            </select>
+         </div>
+         </div>
+         </div>
+      <!-- </div> -->
+
+
+      <hr/>
+      
+	<div class="row">
+		
+      	<div class="col-sm-6">
+         <div class=" input-group input-group-sm">
+            <span class="input-group-addon" id="sizing-addon2">Тип</span>
+                  <select class="type form-control">
+                     <option disabled selected>Выбор типа услуги</option>
+                  </select>
+         </div>
+         </div>
+
+
+         <div class="col-sm-6">
+            <div class="input-group input-group-sm">
+               <span class="input-group-addon" id="sizing-addon2">Оплачено</span>
+               <input id="payed" type="text" class="form-control client" aria-describedby="sizing-addon2">
+            </div>
+		</div>
+
+	</div>
+<div class="betw"></div>
+
+
+	<div class="row">
+		<div class="col-sm-6">
+            <div class="input-group input-group-sm">
+               <span class="input-group-addon" id="sizing-addon2">Стоимость</span>
+               <input id="pricefield" type="text" class="form-control client" aria-describedby="sizing-addon2">
+            </div>
+		</div>
+
+      	<div class="col-sm-6">
+         <div class=" input-group input-group-sm">
+            <span class="input-group-addon" id="sizing-addon2">Тип оплаты</span>
+                  <select class="payType form-control" >
+                     <option disabled selected>Выбор типа оплаты</option>
+                  </select>
+         </div>
+         </div>
+
+
+	</div>
+<div class="betw"></div>
+
+	<div class="row">
+		
+
+		<div class="col-sm-6">
+            <div class="input-group input-group-sm lessonscount">
+               <span class="input-group-addon" id="sizing-addon2">Количество занятий</span>
+               <input id="daysfield" type="text" class="form-control client" aria-describedby="sizing-addon2">
+            </div> 
+	</div>
+<div class="betw"></div>
+
+
+      <div class="col-sm-12">
+         <textarea class="comment form-control" placeholder="Комментарий..."></textarea>
+      </div>
+      <button class="send-pf ripplelink">Добавить абонемент</button>
+      <script>
+         function passForm(form) {
+         google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).PassForm(form);
+         }
+         function onSuccess() {
+         console.log("Success");
+         google.script.host.close();
+         
+         }
+         function onFailure(e) {
+         alert(e);
+         }
+         $(function () {
+         doItNow();
+         });
+         
+         function doItNow() {
+         var data = <?=res?>;
+         var resultData = JSON.parse(data);
+         var today = new Date();
+         $('#datetimepicker1').datetimepicker({
+           defaultDate: today,
+            format: 'DD/MM/YYYY'
+            });
+         
+         //добавляем номер зявки    
+         var clientNumber = resultData.number;
+         var splitTwo = clientNumber.split('/');
+         
+         var newCli = splitTwo[1];
+         console.log(newCli);
+         
+         $('.clientNumber').text(clientNumber);
+         //добавляю массив дисциплин, имён преподавателей, типа занятия в соответствующий выпадающий список 
+         var lessons = resultData.lessons; 
+         for (var i = 0; i < lessons.length; i++) {
+         $('.lessons').append('<option value="' + lessons[i]  + '">' + lessons[i]  + '</option>');
+         }
+         
+         var teachers = resultData.teachers; 
+         for (var i = 0; i < teachers.length; i++) {
+         $('.teacher').append('<option value="' + teachers[i].name  + '"name="'+teachers[i].twoLett+'">' + teachers[i].name  + '</option>');
+         }
+         
+         var types = resultData.type;
+         for (var i = 0; i < types.length; i++) {
+         $('.type').append('<option value="' + types[i]['price']  + '" name="' + types[i]['days']+'">' + types[i]['typeLesson']  + '</option>');
+         }
+         
+         var payType = resultData.payType;
+         console.log(payType);
+         
+         for (var i = 0; i < payType.length; i++) {
+         $('.payType').append('<option value="' + payType[i]  + '">' + payType[i]  + '</option>');
+         }
+         
+         $('.type').change(function(){
+         var price = $('.type :selected').val(); 
+         $('#pricefield').val(price);
+         var days =  $('.type :selected').attr('name');
+          $('#daysfield').val(days);
+          var oneLessonPrice = price/days;
+          return oneLessonPrice;
+         });
+         
+         $('.teacher').change(function(){
+         var id2 = $('.teacher :selected').attr('name'); 
+         var outpID = 'АБ-'+id2+'/'+newCli;
+         $('.clientNumber').text(outpID);
+         });
+
+
+
+         
+            $('.send-pf').on('click', function (e) {
+            
+            $('.send-pf').hide();
+            e.preventDefault();
+         
+            $('.loader').show();
+            $('.backGround').show();
+            
+            var datepicker =  $('#date').val();
+            var newdate = datepicker.split(' ');
+            var newDateOut = newdate[0];
+             
+            
+            var newData = [];
+             
+            var dateOrder = newDateOut,
+            zero = 0,
+            lessonOut = $('.lessons :selected').val(),
+            typeOut = $('.type :selected').text(), 
+            clientOut =  $('.client').val(),
+            teacherOut = $('.teacher :selected').text(), 
+            priceOut = $('#pricefield').val(), 
+            daysOut = $('#daysfield').val(), 
+            payed = $('#payed').val(),
+            typepay =$('.payType :selected').val(),
+            status = 'открыт', 
+            comment = $('.comment').val(),
+            clientNumber = $('.clientNumber').text();
+         
+            
+            newData.push(dateOrder, clientNumber, lessonOut, typeOut, clientOut, teacherOut, priceOut, daysOut, payed, zero, daysOut, status, comment, typepay);
+         
+         
+
+            passForm(JSON.stringify(newData));
+            //return false;
+         });
+         }
+         
+         $(function () {
+         var ink, d, x, y;
+         $(document).on('click', '.ripplelink', function (e) {
+            if ($(this).find(".ink").length === 0) {
+                $(this).prepend("<span class='ink'></span>");
+            }
+         
+            ink = $(this).find(".ink");
+            ink.removeClass("animate");
+         
+            if (!ink.height() && !ink.width()) {
+                d = Math.max($(this).outerWidth(), $(this).outerHeight());
+                ink.css({height: d, width: d});
+            }
+         
+            x = e.pageX - $(this).offset().left - ink.width() / 2;
+            y = e.pageY - $(this).offset().top - ink.height() / 2;
+         
+            ink.css({top: y + 'px', left: x + 'px'}).addClass("animate");
+         //            return false;
+         });
+         });
+         
+      </script>
+   </body>
+</html>
